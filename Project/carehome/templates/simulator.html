@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CareHome — Sensor Simulator</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body class="simulator-page">
+
+<header>
+  <h1>Sensor Simulator</h1>
+  <nav>
+    <a href="/">Dashboard</a>
+    <a href="/tablet">Tablet View</a>
+  </nav>
+</header>
+
+<main>
+  <section class="sim-grid">
+
+    <!-- Motion sensors -->
+    <div class="sim-card">
+      <h3>Motion Sensors</h3>
+      {% for d in devices if d.type == 'motion' %}
+      <button onclick="sendEvent('{{ d.id }}','motion_detected')">{{ d.name }} — Motion</button>
+      <button onclick="sendEvent('{{ d.id }}','no_motion')" class="secondary">{{ d.name }} — Clear</button>
+      {% endfor %}
+    </div>
+
+    <!-- Door sensors -->
+    <div class="sim-card">
+      <h3>Door Sensors</h3>
+      {% for d in devices if d.type == 'door' %}
+      <button onclick="sendEvent('{{ d.id }}','door_open')">{{ d.name }} — Open</button>
+      <button onclick="sendEvent('{{ d.id }}','door_close')" class="secondary">{{ d.name }} — Close</button>
+      {% endfor %}
+    </div>
+
+    <!-- Temperature -->
+    <div class="sim-card">
+      <h3>Temperature</h3>
+      {% for d in devices if d.type == 'temperature' %}
+      <div class="temp-row">
+        <label>{{ d.name }}: <input id="temp_{{ d.id }}" type="number" value="21" min="10" max="40" step="0.5"/>&nbsp;°C</label>
+        <button onclick="sendTemp('{{ d.id }}', document.getElementById('temp_{{ d.id }}').value)">Send</button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Bed sensor -->
+    <div class="sim-card">
+      <h3>Bed Sensor</h3>
+      {% for d in devices if d.type == 'bed' %}
+      <button onclick="sendEvent('{{ d.id }}','bed_occupied')">Bed Occupied</button>
+      <button onclick="sendEvent('{{ d.id }}','bed_empty')" class="secondary">Bed Empty</button>
+      {% endfor %}
+    </div>
+
+    <!-- Panic -->
+    <div class="sim-card">
+      <h3>Panic Button</h3>
+      {% for d in devices if d.type == 'panic' %}
+      <button class="danger" onclick="sendEvent('{{ d.id }}','panic_pressed')">Trigger Panic</button>
+      {% endfor %}
+    </div>
+
+  </section>
+
+  <section id="sim-log">
+    <h3>Event Log</h3>
+    <ul id="sim-log-list"></ul>
+  </section>
+</main>
+
+<script src="/static/main.js"></script>
+<script>
+  function sendEvent(deviceId, eventType, value) {
+    fetch('/event', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({device_id: deviceId, event_type: eventType, value: value || null})
+    }).then(r => r.json()).then(() => {
+      logSimEvent(deviceId, eventType, value);
+    });
+  }
+
+  function sendTemp(deviceId, value) {
+    sendEvent(deviceId, 'temperature_reading', value);
+  }
+
+  function logSimEvent(deviceId, eventType, value) {
+    const list = document.getElementById('sim-log-list');
+    const li   = document.createElement('li');
+    const now  = new Date().toLocaleTimeString();
+    li.textContent = `[${now}] ${deviceId} → ${eventType}${value ? ' (' + value + ')' : ''}`;
+    list.prepend(li);
+    if (list.children.length > 30) list.lastChild.remove();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CareHome — Resident</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body class="tablet-page">
+
+<div class="tablet-wrapper">
+  <div id="clock" class="tablet-clock"></div>
+  <div id="date-display" class="tablet-date"></div>
+
+  <div class="tablet-status">
+    <p id="status-msg">Good morning! Have a wonderful day.</p>
+  </div>
+
+  <button id="panic-btn" onclick="sendPanic()">
+    Call for Help
+  </button>
+
+  <p id="panic-confirm" class="hidden">Help is on the way!</p>
+</div>
+
+<script src="/static/main.js"></script>
+<script>
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  function sendPanic() {
+    fetch('/event', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({device_id: 'panic_button', event_type: 'panic_pressed'})
+    }).then(() => {
+      document.getElementById('panic-confirm').classList.remove('hidden');
+      setTimeout(() => document.getElementById('panic-confirm').classList.add('hidden'), 5000);
+    });
+  }
+</script>
+</body>
+</html>

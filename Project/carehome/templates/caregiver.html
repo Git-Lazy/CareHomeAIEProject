@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CareHome — Caregiver Dashboard</title>
+  <link rel="stylesheet" href="/static/style.css"/>
+</head>
+<body class="caregiver-page">
+
+<header>
+  <h1>CareHome <span class="subtitle">Caregiver Dashboard</span></h1>
+  <nav>
+    <a href="/simulator">Simulator</a>
+    <a href="/tablet">Tablet View</a>
+  </nav>
+</header>
+
+<main>
+  <!-- Alerts panel -->
+  <section id="alerts-panel">
+    <h2>Active Alerts <span id="alert-count" class="badge"></span></h2>
+    <ul id="alert-list"><li class="empty">No active alerts</li></ul>
+  </section>
+
+  <!-- Devices panel -->
+  <section id="devices-panel">
+    <h2>Devices</h2>
+    <ul id="device-list"><li class="empty">Loading…</li></ul>
+  </section>
+
+  <!-- Event feed -->
+  <section id="events-panel">
+    <h2>Recent Events</h2>
+    <table id="event-table">
+      <thead><tr><th>Time</th><th>Device</th><th>Location</th><th>Event</th><th>Value</th></tr></thead>
+      <tbody><tr><td colspan="5" class="empty">Loading…</td></tr></tbody>
+    </table>
+  </section>
+</main>
+
+<script src="/static/main.js"></script>
+<script>
+  refreshAlerts();
+  refreshDevices();
+  refreshEvents();
+  setInterval(refreshAlerts, 5000);
+  setInterval(refreshDevices, 10000);
+  setInterval(refreshEvents,  5000);
+</script>
+</body>
+</html>
