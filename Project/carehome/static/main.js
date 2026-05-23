@@ -83,6 +83,71 @@ function refreshEvents() {
     });
 }
 
+// ── Voice recognition helpers ─────────────────────────────────────────────────
+
+let voiceRecognitionSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+let voiceRecognition = null;
+let voiceActive = false;
+
+function initVoiceRecognition() {
+  if (!voiceRecognitionSupported) {
+    updateVoiceStatus('Voice recognition is not supported in this browser.');
+    return;
+  }
+
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  voiceRecognition = new SpeechRecognition();
+  voiceRecognition.lang = 'en-US';
+  voiceRecognition.interimResults = true;
+  voiceRecognition.maxAlternatives = 1;
+  voiceRecognition.continuous = true;
+
+  voiceRecognition.addEventListener('result', event => {
+    const transcript = Array.from(event.results)
+      .map(result => result[0].transcript)
+      .join('');
+    updateVoiceTranscript(transcript);
+  });
+
+  voiceRecognition.addEventListener('start', () => {
+    voiceActive = true;
+    updateVoiceStatus('Listening for voice commands...');
+  });
+
+  voiceRecognition.addEventListener('end', () => {
+    voiceActive = false;
+    updateVoiceStatus('Voice recognition stopped.');
+  });
+
+  voiceRecognition.addEventListener('error', event => {
+    updateVoiceStatus(`Voice recognition error: ${event.error}`);
+  });
+}
+
+function startVoiceRecognition() {
+  if (!voiceRecognitionSupported || !voiceRecognition) return;
+  if (!voiceActive) {
+    voiceRecognition.start();
+  }
+}
+
+function stopVoiceRecognition() {
+  if (!voiceRecognitionSupported || !voiceRecognition) return;
+  if (voiceActive) {
+    voiceRecognition.stop();
+  }
+}
+
+function updateVoiceStatus(message) {
+  const status = document.getElementById('voice-status');
+  if (status) status.textContent = message;
+}
+
+function updateVoiceTranscript(text) {
+  const transcript = document.getElementById('voice-transcript');
+  if (transcript) transcript.textContent = text;
+}
+
 // ── Tablet helpers ────────────────────────────────────────────────────────────
 
 function updateClock() {

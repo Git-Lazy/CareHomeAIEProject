@@ -67,6 +67,20 @@
 
   </section>
 
+  <section class="sim-card voice-card">
+    <h3>Voice Command Prototype</h3>
+    <p id="voice-status">Initializing voice recognition...</p>
+    <div class="voice-actions">
+      <button onclick="startVoiceRecognition()">Start Listening</button>
+      <button onclick="stopVoiceRecognition()" class="secondary">Stop Listening</button>
+    </div>
+    <div class="voice-transcript">
+      <label>Live transcript:</label>
+      <div id="voice-transcript" class="transcript-box">No transcript yet.</div>
+    </div>
+    <p class="note">This is a bare-bones browser speech recognition prototype for future voice command integration.</p>
+  </section>
+
   <section id="sim-log">
     <h3>Event Log</h3>
     <ul id="sim-log-list"></ul>
@@ -75,6 +89,8 @@
 
 <script src="/static/main.js"></script>
 <script>
+  initVoiceRecognition();
+
   function sendEvent(deviceId, eventType, value) {
     fetch('/event', {
       method: 'POST',
