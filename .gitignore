@@ -5,7 +5,8 @@ obj/
 # Ignore user-specific settings
 *.user
 *.suo
-.venv
+*.venv
+*_pycache_
 
 # Ignore logs
 *.log
