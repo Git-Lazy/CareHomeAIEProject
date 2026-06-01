@@ -29,6 +29,22 @@ CREATE TABLE IF NOT EXISTS alerts (
     acknowledged INTEGER NOT NULL DEFAULT 0,
     created_at   DATETIME DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE IF NOT EXISTS transcripts (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    text       TEXT NOT NULL,
+    device_id  TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS medications (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    name      TEXT NOT NULL,
+    dose      TEXT,
+    -- time of day to remind, stored as 24h "HH:MM"
+    remind_at TEXT NOT NULL,
+    active    INTEGER NOT NULL DEFAULT 1
+);
 """
 
 SEED_DEVICES = [
@@ -39,6 +55,14 @@ SEED_DEVICES = [
     ("bedroom_temp",     "Bedroom Temp",     "temperature",  "Bedroom"),
     ("bed_sensor",       "Bed Occupancy",    "bed",          "Bedroom"),
     ("panic_button",     "Panic Button",     "panic",        "Living Room"),
+]
+
+# (name, dose, remind_at "HH:MM")
+SEED_MEDICATIONS = [
+    ("Morning meds",  "1 tablet",   "08:00"),
+    ("Midday meds",   "1 tablet",   "12:30"),
+    ("Evening meds",  "2 tablets",  "18:00"),
+    ("Bedtime meds",  "1 tablet",   "21:00"),
 ]
 
 
@@ -64,6 +88,12 @@ def init_db():
         conn.execute(
             "INSERT OR IGNORE INTO devices (id, name, type, location) VALUES (?,?,?,?)",
             (device_id, name, dtype, location),
+        )
+    # Seed default medication schedule only on first run (empty table)
+    if conn.execute("SELECT COUNT(*) FROM medications").fetchone()[0] == 0:
+        conn.executemany(
+            "INSERT INTO medications (name, dose, remind_at) VALUES (?,?,?)",
+            SEED_MEDICATIONS,
         )
     conn.commit()
     conn.close()
@@ -117,6 +147,28 @@ def acknowledge_alert(alert_id):
 
 def get_all_devices():
     return get_db().execute("SELECT * FROM devices ORDER BY location").fetchall()
+
+
+def get_active_medications():
+    return get_db().execute(
+        "SELECT * FROM medications WHERE active = 1 ORDER BY remind_at"
+    ).fetchall()
+
+
+def add_transcript(text, device_id=None):
+    db = get_db()
+    db.execute(
+        "INSERT INTO transcripts (text, device_id) VALUES (?,?)",
+        (text, device_id),
+    )
+    db.commit()
+
+
+def get_recent_transcripts(limit=20):
+    return get_db().execute(
+        "SELECT * FROM transcripts ORDER BY created_at DESC LIMIT ?",
+        (limit,),
+    ).fetchall()
 
 
 def minutes_since_last_motion(device_id):

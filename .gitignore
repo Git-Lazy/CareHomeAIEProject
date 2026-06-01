@@ -1,0 +1,11 @@
+# Ignore build output
+bin/
+obj/
+
+# Ignore user-specific settings
+*.user
+*.suo
+.venv
+
+# Ignore logs
+*.log

@@ -29,6 +29,12 @@
     <ul id="device-list"><li class="empty">Loading…</li></ul>
   </section>
 
+  <!-- Voice transcripts -->
+  <section id="transcripts-panel">
+    <h2>Voice Transcripts</h2>
+    <ul id="transcript-list"><li class="empty">No transcripts yet</li></ul>
+  </section>
+
   <!-- Event feed -->
   <section id="events-panel">
     <h2>Recent Events</h2>
@@ -44,9 +50,11 @@
   refreshAlerts();
   refreshDevices();
   refreshEvents();
+  refreshTranscripts();
   setInterval(refreshAlerts, 5000);
   setInterval(refreshDevices, 10000);
   setInterval(refreshEvents,  5000);
+  setInterval(refreshTranscripts, 5000);
 </script>
 </body>
 </html>

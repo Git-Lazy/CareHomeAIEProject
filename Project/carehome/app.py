@@ -6,13 +6,15 @@ app = Flask(__name__)
 app.teardown_appcontext(db.close_db)
 
 # ── blueprints ────────────────────────────────────────────────────────────────
-from routes.events  import bp as events_bp
-from routes.alerts  import bp as alerts_bp
-from routes.devices import bp as devices_bp
+from routes.events      import bp as events_bp
+from routes.alerts      import bp as alerts_bp
+from routes.devices     import bp as devices_bp
+from routes.transcripts import bp as transcripts_bp
 
 app.register_blueprint(events_bp)
 app.register_blueprint(alerts_bp)
 app.register_blueprint(devices_bp)
+app.register_blueprint(transcripts_bp)
 
 # ── page routes ───────────────────────────────────────────────────────────────
 

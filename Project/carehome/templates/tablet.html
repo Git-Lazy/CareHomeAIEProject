@@ -21,12 +21,22 @@
   </button>
 
   <p id="panic-confirm" class="hidden">Help is on the way!</p>
+
+  <div class="tablet-voice">
+    <button id="mic-btn" onclick="toggleVoiceRecognition()" aria-label="Tap to speak">
+      <span class="mic-icon" aria-hidden="true">🎤</span>
+      <span id="mic-label">Tap to Speak</span>
+    </button>
+    <p id="voice-status" class="voice-status">Tap the microphone to speak.</p>
+    <p id="voice-transcript" class="voice-transcript"></p>
+  </div>
 </div>
 
 <script src="/static/main.js"></script>
 <script>
   updateClock();
   setInterval(updateClock, 1000);
+  initVoiceRecognition();
 
   function sendPanic() {
     fetch('/event', {

@@ -83,11 +83,31 @@ function refreshEvents() {
     });
 }
 
+function refreshTranscripts() {
+  fetch('/transcripts?limit=20')
+    .then(r => r.json())
+    .then(items => {
+      const list = document.getElementById('transcript-list');
+      if (!list) return;
+      if (items.length === 0) {
+        list.innerHTML = '<li class="empty">No transcripts yet</li>';
+        return;
+      }
+      list.innerHTML = items.map(t => `
+        <li class="transcript-item">
+          <span class="transcript-text">${escapeHtml(t.text)}</span>
+          <span class="transcript-time">${fmtTime(t.created_at)}</span>
+        </li>
+      `).join('');
+    });
+}
+
 // ── Voice recognition helpers ─────────────────────────────────────────────────
 
 let voiceRecognitionSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
 let voiceRecognition = null;
 let voiceActive = false;
+let voiceTranscript = '';
 
 function initVoiceRecognition() {
   if (!voiceRecognitionSupported) {
@@ -106,22 +126,64 @@ function initVoiceRecognition() {
     const transcript = Array.from(event.results)
       .map(result => result[0].transcript)
       .join('');
+    voiceTranscript = transcript;
     updateVoiceTranscript(transcript);
   });
 
   voiceRecognition.addEventListener('start', () => {
     voiceActive = true;
-    updateVoiceStatus('Listening for voice commands...');
+    voiceTranscript = '';
+    updateMicButton(true);
+    updateVoiceStatus('Listening… tap again when you are done.');
+    updateVoiceTranscript('');
   });
 
   voiceRecognition.addEventListener('end', () => {
     voiceActive = false;
-    updateVoiceStatus('Voice recognition stopped.');
+    updateMicButton(false);
+    const finalText = voiceTranscript.trim();
+    if (finalText) {
+      sendTranscript(finalText);
+      updateVoiceStatus('Sent to your caregiver.');
+    } else {
+      updateVoiceStatus('Tap the microphone to speak.');
+    }
+    voiceTranscript = '';
   });
 
   voiceRecognition.addEventListener('error', event => {
-    updateVoiceStatus(`Voice recognition error: ${event.error}`);
+    updateMicButton(false);
+    updateVoiceStatus(`Sorry, something went wrong (${event.error}).`);
   });
+}
+
+function toggleVoiceRecognition() {
+  if (!voiceRecognitionSupported) {
+    updateVoiceStatus('Voice recognition is not supported in this browser.');
+    return;
+  }
+  if (!voiceRecognition) initVoiceRecognition();
+  if (voiceActive) {
+    stopVoiceRecognition();
+  } else {
+    startVoiceRecognition();
+  }
+}
+
+function updateMicButton(listening) {
+  const btn = document.getElementById('mic-btn');
+  if (!btn) return;
+  btn.classList.toggle('listening', listening);
+  const label = document.getElementById('mic-label');
+  if (label) label.textContent = listening ? 'Listening… Tap to Stop' : 'Tap to Speak';
+}
+
+function sendTranscript(text) {
+  fetch('/transcript', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ device_id: 'tablet_mic', text }),
+  }).catch(() => updateVoiceStatus('Could not reach caregiver — please try again.'));
 }
 
 function startVoiceRecognition() {
@@ -183,4 +245,10 @@ function minutesAgo(isoStr) {
   if (!isoStr) return Infinity;
   const d = new Date(isoStr.includes('Z') ? isoStr : isoStr + 'Z');
   return (Date.now() - d.getTime()) / 60000;
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, ch => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[ch]));
 }
