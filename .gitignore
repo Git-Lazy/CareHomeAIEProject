@@ -6,7 +6,10 @@ obj/
 *.user
 *.suo
 *.venv
-*_pycache_
+
+# Python Tools for Visual Studio (PTVS)
+**/__pycache__/
+*.pyc
 
 # Ignore logs
 *.log
